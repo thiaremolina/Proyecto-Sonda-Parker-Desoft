@@ -35,38 +35,118 @@ label {
     margin-right: 0.5rem;
     margin-left: 1rem;
 }
+        .unidad-btn {
+            background-color: #2d0a2d;
+            border: 1px solid #e879b0;
+            border-radius: 20px;
+            color: #e879b0;
+            font-size: 12px;
+            padding: 5px 13px;
+            cursor: pointer;
+            margin: 2px;
+        }
+
+            .unidad-btn.activo {
+                background-color: #e879b0;
+                color: white;
+                font-weight: bold;
+            }
+
+        .tabla-wrap {
+            background-color: #2d0a2d;
+            border: 1px solid #e879b0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            background-color: #3d0a3d;
+            border-bottom: 1px solid #e879b0;
+            color: #e879b0;
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #3d0a3d;
+        }
+
+            tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            tbody tr:hover {
+                background-color: #3d0a3d;
+            }
+
+        td {
+            padding: 9px 14px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <h1>Parker Solar Probe — Perihelia</h1>
     <p>Consulta la posición heliocéntrica de la sonda por fecha.</p>
-<div>
-    <label>Fecha inicio:</label>
-    <input type="date" id="fecha-inicio" value="2018-10-01">
+    <div>
+        <label>Fecha inicio:</label>
+        <input type="date" id="fecha-inicio" value="2018-10-01">
 
-    <label>Fecha fin:</label>
-    <input type="date" id="fecha-fin" value="2025-01-01">
+        <label>Fecha fin:</label>
+        <input type="date" id="fecha-fin" value="2025-01-01">
 
-    <button onclick="consultarNASA()">Consultar NASA</button>
-</div>
-<div id="resultado"></div>
-<script>
-async function consultarNASA() {
-    const inicio = document.getElementById('fecha-inicio').value;
-    const fin = document.getElementById('fecha-fin').value;
+        <button onclick="consultarNASA()">Consultar NASA</button>
+    </div>
+    <div id="resultado"></div>
+    <div style="margin-top: 24px;">
+        <label>Unidad de distancia:</label>
+        <button class="unidad-btn activo" data-unit="Rs">Radios Solares</button>
+        <button class="unidad-btn" data-unit="AU">AU</button>
+        <button class="unidad-btn" data-unit="Re">Radios Terrestres</button
+    </div>
 
-    document.getElementById('resultado').innerHTML = 'Consultando NASA...';
+    <div class="tabla-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Órbita</th>
+                    <th>Fecha (UTC)</th>
+                    <th>Tiempo (UTC)</th>
+                    <th id="cabeza-dist">Distancia centro</th>
+                    <th>Distancia superficie</th>
+                    <th>Temperatura(°C)</th>
+                    <th>Densidad protones (cm⁻³)</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+    <script>
+        async function consultarNASA() {
+            const inicio = document.getElementById('fecha-inicio').value;
+            const fin = document.getElementById('fecha-fin').value;
 
-    try {
-        const url = `https://cdaweb.gsfc.nasa.gov/WS/cdasr/1/dataviews/sp_phys/datasets/PSP_HELIO1DAY_POSITION/data/${inicio}T00:00:00.000Z,${fin}T23:59:59.000Z/HEE_R?format=json`;
-        const respuesta = await fetch(url);
-        const texto = await respuesta.text();
-        console.log(texto);
-        document.getElementById('resultado').innerHTML = 'Respuesta recibida, revisa consola.';
-    } catch(error) {
-        document.getElementById('resultado').innerHTML = 'Error: ' + error.message;
-    }
-}
-</script>
+            document.getElementById('resultado').innerHTML = 'Consultando NASA...';
+
+            try {
+                const url = `https://cdaweb.gsfc.nasa.gov/WS/cdasr/1/dataviews/sp_phys/datasets/PSP_HELIO1DAY_POSITION/data/${inicio}T00:00:00.000Z,${fin}T23:59:59.000Z/HEE_R?format=json`;
+                const respuesta = await fetch(url);
+                const texto = await respuesta.text();
+                console.log(texto);
+                document.getElementById('resultado').innerHTML = 'Respuesta recibida, revisa consola.';
+            } catch (error) {
+                document.getElementById('resultado').innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
 </body>
 </html> 
