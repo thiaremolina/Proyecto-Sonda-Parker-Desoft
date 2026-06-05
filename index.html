@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Parker Solar Probe</title>
+    <style>
+        body {
+            background-color: #1a0a1a;
+            color: #f0e0f0;
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+        h1 {
+            color: #e879b0;
+        }
+button {
+    background-color: #e879b0;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+input[type="date"] ::-webkit-datetime-edit{
+    background-color: #2d0a2d;
+    color: #e879b0;
+    border: 1px solid #e879b0;
+    border-radius: 10px;
+    padding: 0.4rem 0.8rem;
+    color-scheme: dark;
+}
+
+label {
+    margin-right: 0.5rem;
+    margin-left: 1rem;
+}
+    </style>
+</head>
+<body>
+    <h1>Parker Solar Probe — Perihelia</h1>
+    <p>Consulta la posición heliocéntrica de la sonda por fecha.</p>
+<div>
+    <label>Fecha inicio:</label>
+    <input type="date" id="fecha-inicio" value="2018-10-01">
+
+    <label>Fecha fin:</label>
+    <input type="date" id="fecha-fin" value="2025-01-01">
+
+    <button onclick="consultarNASA()">Consultar NASA</button>
+</div>
+<div id="resultado"></div>
+<script>
+async function consultarNASA() {
+    const inicio = document.getElementById('fecha-inicio').value;
+    const fin = document.getElementById('fecha-fin').value;
+
+    document.getElementById('resultado').innerHTML = 'Consultando NASA...';
+
+    try {
+        const url = `https://cdaweb.gsfc.nasa.gov/WS/cdasr/1/dataviews/sp_phys/datasets/PSP_HELIO1DAY_POSITION/data/${inicio}T00:00:00.000Z,${fin}T23:59:59.000Z/HEE_R?format=json`;
+        const respuesta = await fetch(url);
+        const texto = await respuesta.text();
+        console.log(texto);
+        document.getElementById('resultado').innerHTML = 'Respuesta recibida, revisa consola.';
+    } catch(error) {
+        document.getElementById('resultado').innerHTML = 'Error: ' + error.message;
+    }
+}
+</script>
+</body>
+</html> 
