@@ -4,8 +4,12 @@ import os
 import cdflib
 import numpy as np
 import pandas as pd
+import requests
 
 #CARGO LOS DATOS DESCARGADOS
+
+print("=== VERSION NUEVA CON DISTANCIAS ===")
+
 
 CARPETA = os.path.dirname(os.path.abspath(__file__))
 
@@ -72,6 +76,57 @@ df = df[df["velocidad_r"] > -1e30]
 df = df[df["temperatura"] > -1e30]
 
 print(f"Registros válidos: {len(df)}")
+
+# PARA LAS DISTANCIAS DE PSP
+try:
+    print("\nObteniendo posiciones de PSP...")
+    ruta_pos = os.path.join(CARPETA, "psp_helio1hr_position_20180813_v01.cdf")
+    cdf_pos = cdflib.CDF(ruta_pos)
+    tiempo_pos = cdf_pos.varget("Epoch")
+    distancias_au = cdf_pos.varget("RAD_AU")
+    fechas_pos = cdflib.cdfepoch.to_datetime(tiempo_pos)
+
+    df_pos = pd.DataFrame({
+        "fecha_hora": pd.to_datetime(fechas_pos).floor("h"),
+        "distancia_AU": distancias_au
+    })
+    df["fecha_hora"] = df["fecha"].dt.floor("h")
+    df = pd.merge(df, df_pos[["fecha_hora", "distancia_AU"]],
+                  on="fecha_hora", how="left")
+    
+    df["distancia_Rs"]     = df["distancia_AU"] * 215.032
+    df["distancia_sup_Rs"] = df["distancia_Rs"] - 1.0
+
+    df = df.drop(columns=["fecha_hora", "distancia_AU"], errors="ignore")
+    print("Distancias agregadas correctamente.")
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    # print(f"Error al obtener posiciones: {e}")
+    df["distancia_Rs"] = np.nan
+    df["distancia_sup_Rs"] = np.nan
+
+#ORBITA DE PSP
+df_diario = df.groupby("fecha_dia" if "fecha_dia" in df.columns
+                        else df["fecha"].dt.normalize())["distancia_Rs"].mean().reset_index()
+df_diario.columns = ["fecha_dia", "dist_media"]
+
+orbita_actual = 1
+fecha_ultimo_perihelio = df_diario["fecha_dia"].min()
+VENTANA = 15 
+
+perih_fechas = []
+for i in range(VENTANA, len(df_diario) - VENTANA):
+    ventana = df_diario["dist_media"].iloc[i - VENTANA: i + VENTANA + 1]
+    if df_diario["dist_media"].iloc[i] == ventana.min():
+        perih_fechas.append(df_diario["fecha_dia"].iloc[i])
+
+df["orbita"] = 1
+for idx, fecha_perih in enumerate(perih_fechas):
+        df.loc[df["fecha"].dt.normalize() >= fecha_perih, "orbita"] = idx + 2
+
+print(f"Perihelios detectados: {len(perih_fechas)}")
+print(f"Órbitas asignadas: {df['orbita'].max()}")
 
 #GUARDO 
 
