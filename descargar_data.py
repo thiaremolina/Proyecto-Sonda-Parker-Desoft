@@ -1,3 +1,41 @@
+import os
+import requests
+from bs4 import BeautifulSoup
+
+
+DESTINO = os.path.dirname(os.path.abspath(__file__))
+
+"""
+-------------------------------------------------------------------------------------------------------------
+ AHORA DESCARGAMOS LOS DATOS DE LA ORBITA Y LAS DISTANCIAS RESPECTO AL SOL A TRAVES DEL LINK
+  Datos: psp_helio1hr_position_20180813_v01
+  Fuente: https://spdf.gsfc.nasa.gov/pub/data/psp/ephemeris/helio1hr/psp_helio1hr_position_20180813_v01.cdf
+-------------------------------------------------------------------------------------------------------------
+"""
+
+base_url_pos = "https://spdf.gsfc.nasa.gov/pub/data/psp/ephemeris/helio1hr"
+archivo_pos = "psp_helio1hr_position_20180813_v01.cdf"
+destino_pos = os.path.join(DESTINO, archivo_pos)
+
+if os.path.exists(destino_pos):
+    print(f"ya existe {archivo_pos}")
+else:
+    print(f"\nDescargando: {archivo_pos}")
+    try:
+        with requests.get(f"{base_url_pos}/{archivo_pos}", stream=True, timeout=60) as r:
+            r.raise_for_status()
+            total = int(r.headers.get("content-length", 0))
+            descargado = 0
+            with open(destino_pos, "wb") as f:
+                for chunk in r.iter_content(chunk_size=65536):
+                    f.write(chunk)
+                    descargado += len(chunk)
+                    if total:
+                        print(f"\r     {descargado/total*100:5.1f}%  ({descargado/1e6:.1f} MB)", end="", flush=True)
+        print(f"Listo: {archivo_pos} ({descargado/1e6:.1f} MB)")
+    except Exception as e:
+        print(f"Error: {e}")
+
 """
 ---------------------------------------------------------
  AQUi DESCARGAMOS LOS DATOS A TRAVES DEL LINK 
@@ -11,16 +49,12 @@
   #DESCARGAR TODOS LOS ARCHIVOS DE UNA
 -----------------------------------------------------------------------
 """
-import os
-import requests
-from bs4 import BeautifulSoup
 
 BASE_URL = "https://spdf.gsfc.nasa.gov/pub/data/psp/sweap/spi/l3/spi_sf00_l3_mom"
 
 # Todos los años disponibles
-ANOS = list(range(2018, 2026))
 
-DESTINO = os.path.dirname(os.path.abspath(__file__))
+ANOS = list(range(2018, 2026))
 
 def listar_archivos_del_ano(anio):
     url = f"{BASE_URL}/{anio}/"
@@ -90,5 +124,7 @@ for anio in ANOS:
             print("  Libera espacio y vuelve a ejecutar — los archivos ya descargados se saltarán.")
             exit()
         descargar(anio, archivo)
+
+
 
 print("\n¡Descarga completa!") 
