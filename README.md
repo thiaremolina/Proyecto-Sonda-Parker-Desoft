@@ -15,5 +15,5 @@ REQUISITOS:
         5. Numpy, para los cálculos numéricos (usado internamente por pandas y por el script de filtrado).
 
 - Se necesita un Espacio de al menos 5 GB libres en disco
-- 
+  
 - Para ver índice.html hace falta un navegador, como Chrome o Edge. 
