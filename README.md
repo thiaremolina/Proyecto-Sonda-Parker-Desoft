@@ -8,6 +8,7 @@ REQUISITOS:
 - Se requiere tener Python instalado en la computadora, en una version de 3.9 o mas reciente.
   
 - Las librerías necesarias que debe tener instaladas son:
+
         1. Requests, que sirve para descargar archivos de la NASA por internet.
         2. Beautifulsoup4, para leer el listado de archivos disponibles en el servidor de la NASA.
         3. Cdflib, para poder abrir y leer los archivos .cdf (el formato en el que la NASA entrega los datos de psp).
