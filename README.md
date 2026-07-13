@@ -1,11 +1,11 @@
 # Proyecto-Sonda-Parker-Desoft
 
-Proyecto que descarga, filtra y visualiza datos reales de la sonda Parker Solar Probe (PSP) de la NASA: densidad, velocidad y temperatura del viento solar, además de la distancia de la sonda al Sol y sus órbitas. La intención final del proyecto es tener una página llamada índice, que muestra toda esta información organizada en una tabla, y que permite buscar y consultar los datos eligiendo un rango de fechas específico, además de poder cambiar la unidad en la que se muestra la distancia al Sol y dar la opción de generar un archivo .txt descargable directamente desde el navegador.
+Proyecto que descarga, filtra y visualiza datos reales de la sonda Parker Solar Probe (PSP) de la NASA: densidad, velocidad y temperatura del viento solar, además de la distancia de la sonda al Sol y sus órbitas. La intención final del proyecto es tener una página llamada Indice, que muestra toda esta información organizada en una tabla, y que permite buscar y consultar los datos eligiendo un rango de fechas específico, además de poder cambiar la unidad en la que se muestra la distancia al Sol y dar la opción de generar un archivo .txt descargable directamente desde el navegador.
 
 
 REQUISITOS:
 
-- Se requiere tener Python instalado en la computadora, en una version de 3.9 o mas reciente.
+- Se requiere tener Python instalado en la computadora, en una version de 3.9 o superior.
   
 - Las librerías necesarias que debe tener instaladas son:
 
