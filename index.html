@@ -1,9 +1,33 @@
+<!--
+Esta es una pagina web que muestra en una tabla los datos de la sonda
+espacial Parker Solar Probe cada vez que pasó cerca del Sol (perihelio).
+
+El usuario puede:
+1.- Elegir un rango de fechas (fecha inicio / fecha fin)
+2.- Ver en una tabla: número de órbita, fecha, hora, distancia al Sol,
+  temperatura y densidad de protones.
+3.- Cambiar la unidad en la que se muestra la distancia:
+     - Rs = Radios Solares
+     - AU = Unidades Astronómicas
+     - Re = Radios Terrestres
+4.- Descargar la tabla en un archivo .txt
+
+Los datos se cargan desde un archivo externo llamado:
+psp_datos_filtrados.json
+
+IMPORTANTE: para que esto funcione, psp_datos_filtrados.json
+tiene que estar en la MISMA carpeta que este archivo .html,
+y la página se debe abrir con un servidor local, por ejemplo:
+click derecho sobre el archivo index.html "Abrir con Live Server"
+(o "python -m http.server" desde la terminal).
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Parker Solar Probe</title>
     <style>
+        /* estilos generales de la pagina */
         body {
             background-color: #1a0a1a;
             color: #f0e0f0;
@@ -13,29 +37,37 @@
         h1 {
             color: #e879b0;
         }
-button {
-    background-color: #e879b0;
-    color: white;
-    border: none;
-    padding: 0.5rem 1.2rem;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 1rem;
-}
-input[type="date"] ::-webkit-datetime-edit{
-    background-color: #2d0a2d;
-    color: #e879b0;
-    border: 1px solid #e879b0;
-    border-radius: 10px;
-    padding: 0.4rem 0.8rem;
-    color-scheme: dark;
-}
-
-label {
-    margin-right: 0.5rem;
-    margin-left: 1rem;
-}
-        .unidad-btn.activo {
+        button {
+            background-color: #e879b0;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        /* BOTON DE DESCARGA */
+        .btn-descarga {
+            background-color: #3d0a3d;
+            border: 1px solid #e879b0;
+            margin-left: 1rem;
+        }
+        .btn-descarga:hover {
+            background-color: #e879b0;
+        }
+        input[type="date"] ::-webkit-datetime-edit{
+            background-color: #2d0a2d;
+            color: #e879b0;
+            border: 1px solid #e879b0;
+            border-radius: 10px;
+            padding: 0.4rem 0.8rem;
+            color-scheme: dark;
+        }
+        label {
+            margin-right: 0.5rem;
+            margin-left: 1rem;
+        }
+        .unidad-btn {
             background-color: #2d0a2d;
             border: 1px solid #e879b0;
             border-radius: 20px;
@@ -45,13 +77,11 @@ label {
             cursor: pointer;
             margin: 2px;
         }
-
-            .unidad-btn.activo {
-                background-color: #e879b0;
-                color: white;
-                font-weight: bold;
-            }
-
+        .unidad-btn.activo {
+            background-color: #e879b0;
+            color: white;
+            font-weight: bold;
+        }
         .tabla-wrap {
             background-color: #2d0a2d;
             border: 1px solid #e879b0;
@@ -59,13 +89,11 @@ label {
             overflow: hidden;
             margin-top: 20px;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
         }
-
         thead th {
             background-color: #3d0a3d;
             border-bottom: 1px solid #e879b0;
@@ -75,7 +103,6 @@ label {
             padding: 10px 14px;
             text-align: left;
         }
-
         tbody tr {
             border-bottom: 1px solid #3d0a3d;
         }
@@ -104,14 +131,17 @@ label {
         <label>Fecha fin:</label>
         <input type="date" id="fecha-fin" value="2025-01-01">
 
-        <button onclick="consultarNASA()">Consultar NASA</button>
+        <button onclick="cargarDatosFiltrados()">Consultar</button>
+
+        <!-- BOTON que descarga en TXT los datos que se ven ahora en la tabla -->
+        <button class="btn-descarga" onclick="descargarTXT()">⬇ Descargar TXT</button>
     </div>
     <div id="resultado"></div>
     <div style="margin-top: 24px;">
         <label>Unidad de distancia:</label>
-        <button class="unidad-btn activo" data-unit="Rs">Radios Solares</button>
-        <button class="unidad-btn" data-unit="AU">AU</button>
-        <button class="unidad-btn" data-unit="Re">Radios Terrestres</button>
+        <button class="unidad-btn activo" data-unit="Rs" onclick="cambiarUnidad('Rs')">Radios Solares</button>
+        <button class="unidad-btn" data-unit="AU" onclick="cambiarUnidad('AU')">AU</button>
+        <button class="unidad-btn" data-unit="Re" onclick="cambiarUnidad('Re')">Radios Terrestres</button>
     </div>
 
     <div class="tabla-wrap">
@@ -121,7 +151,7 @@ label {
                     <th>Órbita</th>
                     <th>Fecha (UTC)</th>
                     <th>Tiempo (UTC)</th>
-                    <th id="cabeza-dist">Distancia centro</th>
+                    <th id="cabeza-dist">Distancia centro (Rs)</th>
                     <th>Distancia superficie</th>
                     <th>Temperatura(°C)</th>
                     <th>Densidad protones (cm⁻³)</th>
@@ -130,23 +160,232 @@ label {
             <tbody id="tbody"></tbody>
         </table>
     </div>
+
     <script>
-        async function consultarNASA() {
+        // 
+        // CODIGOS 
+        // 
+        // datosCompletos(JSON): todo lo que viene del JSON, sin filtrar.
+        // datosFiltrados(CSV): el subconjunto que cae dentro del rango de
+        //                 fechas elegido por el usuario (lo que se
+        //                 muestra en la tabla y lo que se descarga).
+        // UNIDADES DE MEDIDA:   qué unidad de distancia se está mostrando
+        //                 ("Rs", "AU" o "Re").
+        // -------------------------------------------------------------
+        let datosCompletos = [];
+        let datosFiltrados = [];
+        let unidadActual = 'Rs';
+
+        // Factores de conversiOn desde Radios Solares (Rs), que es la
+        // unidad en la que Filtrar_data.py ya deja calculada la
+        // distancia ("distancia_Rs").
+        const RS_A_AU = 1 / 215.032;   // 1 Rs = 1/215.032 AU
+        const RS_A_RE = 109.2;         // 1 Rs = 109.2 Radios Terrestres
+
+        /*CARGAR ARCHIVO psp_datos_filtrados.json y si hay algun error respecto a que no esta en la misma carpeta por ejemplo lo mostrara*/
+        async function cargarDatosFiltrados() {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = 'Cargando datos...';
+
+            try {
+                const respuesta = await fetch('psp_datos_filtrados.json');
+                if (!respuesta.ok) {
+                    throw new Error(`No se pudo leer el archivo (HTTP ${respuesta.status})`);
+                }
+                datosCompletos = await respuesta.json();
+                resultadoDiv.innerHTML = `Datos cargados: ${datosCompletos.length.toLocaleString()} registros.`;
+                aplicarFiltroFechas();
+            } catch (error) {
+                resultadoDiv.innerHTML =
+                    'Error al cargar psp_datos_filtrados.json: ' + error.message +
+                    '<br><small>Recuerda: el archivo debe estar en la misma carpeta que este HTML, ' +
+                    'y debes abrir la página con un servidor local (ej: "python -m http.server"), no con doble clic.</small>';
+            }
+        }
+
+        /*Filtra datosCompletos según el rango de fechas elegido en los  inputs de "Fecha inicio" / "Fecha fin", guarda el resultado en * datosFiltrados, y vuelve a dibujar la tabla.
+         */
+        function aplicarFiltroFechas() {
             const inicio = document.getElementById('fecha-inicio').value;
             const fin = document.getElementById('fecha-fin').value;
 
-            document.getElementById('resultado').innerHTML = 'Consultando NASA...';
+            const fechaInicio = inicio ? new Date(inicio + 'T00:00:00Z') : null;
+            const fechaFin = fin ? new Date(fin + 'T23:59:59Z') : null;
 
-            try {
-                const url = `https://cdaweb.gsfc.nasa.gov/WS/cdasr/1/dataviews/sp_phys/datasets/PSP_HELIO1DAY_POSITION/data/${inicio}T00:00:00.000Z,${fin}T23:59:59.000Z/HEE_R?format=json`;
-                const respuesta = await fetch(url);
-                const texto = await respuesta.text();
-                console.log(texto);
-                document.getElementById('resultado').innerHTML = 'Respuesta recibida, revisa consola.';
-            } catch (error) {
-                document.getElementById('resultado').innerHTML = 'Error: ' + error.message;
+            datosFiltrados = datosCompletos.filter(fila => {
+                const fecha = new Date(fila.fecha);
+                if (fechaInicio && fecha < fechaInicio) return false;
+                if (fechaFin && fecha > fechaFin) return false;
+                return true;
+            });
+
+            document.getElementById('resultado').innerHTML =
+                `Mostrando ${datosFiltrados.length.toLocaleString()} de ${datosCompletos.length.toLocaleString()} registros.`;
+
+            dibujarTabla();
+        }
+
+        /*convierte el valor de distancia que haya a las unidades de medidas que queriamos, como unidades solares o terrestres, etc.
+         */
+        function convertirDistancia(valorRs) {
+            if (valorRs === null || valorRs === undefined || isNaN(valorRs)) return null;
+            if (unidadActual === 'AU') return valorRs * RS_A_AU;
+            if (unidadActual === 'Re') return valorRs * RS_A_RE;
+            return valorRs; // Rs, sin conversión
+        }
+
+        /** Cambia la unidad de distancia activa, actualiza el estilo de
+         los botones y vuelve a dibujar la tabla con los valores
+         convertidos a la nueva unidad.
+         */
+        function cambiarUnidad(unidad) {
+            unidadActual = unidad;
+
+            document.querySelectorAll('.unidad-btn').forEach(btn => {
+                btn.classList.toggle('activo', btn.dataset.unit === unidad);
+            });
+
+            document.getElementById('cabeza-dist').textContent = `Distancia centro (${unidad})`;
+
+            dibujarTabla();
+        }
+
+        /**
+         * Dibuja las filas de la tabla a partir de
+         * datosFiltrados, aplicando la unidad de distancia seleccionada.
+         */
+        function dibujarTabla() {
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '';
+
+            if (!datosFiltrados.length) {
+                tbody.innerHTML = '<tr><td colspan="7">Sin datos para el rango seleccionado.</td></tr>';
+                return;
+            }
+
+            // Para no trabar el navegador si el rango filtrado es muy
+            // grande, se muestran las primeras 2000 filas.
+            const LIMITE_FILAS = 2000;
+            const filasAMostrar = datosFiltrados.slice(0, LIMITE_FILAS);
+
+            const html = filasAMostrar.map(fila => {
+                const fecha = new Date(fila.fecha);
+                const fechaTexto = fecha.toISOString().slice(0, 10);
+                const horaTexto = fecha.toISOString().slice(11, 19);
+
+                const distCentro = convertirDistancia(fila.distancia_Rs);
+                const distSuperficie = convertirDistancia(fila.distancia_sup_Rs);
+
+                const fmt = (v, dec = 2) => (v === null || isNaN(v)) ? '—' : v.toFixed(dec);
+
+                return `<tr>
+                    <td>${fila.orbita ?? '—'}</td>
+                    <td>${fechaTexto}</td>
+                    <td>${horaTexto}</td>
+                    <td>${fmt(distCentro)}</td>
+                    <td>${fmt(distSuperficie)}</td>
+                    <td>${fmt(fila.temperatura, 1)}</td>
+                    <td>${fmt(fila.densidad, 2)}</td>
+                </tr>`;
+            }).join('');
+
+            tbody.innerHTML = html;
+
+            if (datosFiltrados.length > LIMITE_FILAS) {
+                tbody.innerHTML += `<tr><td colspan="7">Mostrando las primeras ${LIMITE_FILAS.toLocaleString()} filas de ${datosFiltrados.length.toLocaleString()}.</td></tr>`;
             }
         }
+
+        // ===============================================================
+        // FUNCIÓN: descargarTXT()
+        //lo que hace es que toma los datos que hay en la tabla y los descarga en un archivo de texto
+        //con los espaciados correspondientes para que tenga un orden correcto.
+        function descargarTXT() {
+            if (!datosFiltrados.length) {
+                alert('No hay datos para descargar. Aplica un filtro de fechas primero.');
+                return;
+            }
+
+            //función auxiliar para formatear números (igual que en la tabla)
+            const fmt = (v, dec = 2) => (v === null || v === undefined || isNaN(v)) ? '-' : v.toFixed(dec);
+
+            //Definición de columnas: título + ancho fijo (caracteres)
+            const columnasDef = [
+                { titulo: 'Orbita',                            ancho: 8  },
+                { titulo: 'Fecha (UTC)',                       ancho: 14 },
+                { titulo: 'Tiempo (UTC)',                      ancho: 14 },
+                { titulo: `Dist. centro (${unidadActual})`,    ancho: 20 },
+                { titulo: `Dist. superficie (${unidadActual})`, ancho: 22 },
+                { titulo: 'Temp (C)',                          ancho: 12 },
+                { titulo: 'Densidad (cm-3)',                   ancho: 16 }
+            ];
+
+            //Rellena un texto con espacios a la derecha hasta el ancho
+            //pedido. Si el texto ya es más largo, lo deja tal cual
+            //(para no cortar información).
+            const col = (texto, ancho) => String(texto).padEnd(ancho, ' ');
+
+            //encabezado
+            const lineaEncabezado = columnasDef.map(c => col(c.titulo, c.ancho)).join('');
+
+            //LINEA separadora
+            const lineaSeparador = columnasDef
+                .map(c => col('-'.repeat(c.titulo.length), c.ancho))
+                .join('');
+
+            //Una línea de texto por cada fila de datos
+            const lineasDatos = datosFiltrados.map(fila => {
+                const fecha = new Date(fila.fecha);
+                const fechaTexto = fecha.toISOString().slice(0, 10);
+                const horaTexto = fecha.toISOString().slice(11, 19);
+
+                const distCentro = convertirDistancia(fila.distancia_Rs);
+                const distSuperficie = convertirDistancia(fila.distancia_sup_Rs);
+
+                const valores = [
+                    fila.orbita ?? '-',
+                    fechaTexto,
+                    horaTexto,
+                    fmt(distCentro),
+                    fmt(distSuperficie),
+                    fmt(fila.temperatura, 1),
+                    fmt(fila.densidad, 2)
+                ];
+
+                //Cada valor se rellena según el ancho de su columna,
+                //respetando el mismo orden que columnasDef
+                return valores.map((v, i) => col(v, columnasDef[i].ancho)).join('');
+            });
+
+            // ---- Uno todo: encabezado + separador + filas de datos ----
+            const contenidoTXT = [lineaEncabezado, lineaSeparador, ...lineasDatos].join('\n');
+
+            // ---- Genero el archivo en memoria y disparo la descarga ----
+            const blob = new Blob([contenidoTXT], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+
+            const enlace = document.createElement('a');
+            enlace.href = url;
+
+            const inicio = document.getElementById('fecha-inicio').value || 'inicio';
+            const fin = document.getElementById('fecha-fin').value || 'fin';
+            enlace.download = `psp_datos_${inicio}_a_${fin}.txt`;
+
+            document.body.appendChild(enlace);
+            enlace.click();
+
+        
+            document.body.removeChild(enlace);
+            URL.revokeObjectURL(url);
+        }
+
+        //Al cambiar las fechas, se vuelve a filtrar automáticamente
+        //sin necesidad de tocar el botón "Consultar" de nuevo).
+        document.getElementById('fecha-inicio').addEventListener('change', aplicarFiltroFechas);
+        document.getElementById('fecha-fin').addEventListener('change', aplicarFiltroFechas);
+
+        //Carga inicial de los datos al abrir la página.
+        cargarDatosFiltrados();
     </script>
 </body>
-</html> 
+</html>
