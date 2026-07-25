@@ -51,6 +51,6 @@ pip install requests beautifulsoup4 cdflib pandas numpy
 
 ## Ejemplos de uso
 1. Seleccionar un rango de fechas.
-2. Visualizar los datos de Orbita, Fecha, Hora, Distancias, Temperatura y Densidad.
+2. Visualizar los datos de la tabla que contiene: Orbita, Fecha, Hora, Distancias, Temperatura y Densidad.
 3. Cambiar la unidad de distancia respecto al Sol.
 4. Descargar los resultados a un archivo `.txt`.
