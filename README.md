@@ -1,8 +1,18 @@
 # Proyecto-Sonda-Parker-Desoft
 
-Herramienta automatizada para la descarga, filtrado y visualización de datos reales de la sonda Parker Solar Probe (PSP) de la NASA. El sistema procesa variables clave del viento solar y la trayectoria espacial de la sonda.
+## Integrantes del grupo
+- Martina Molina Riffo
+- Thiare Molina Tapia
+- Bárbara Quilodrán Hijerra
+- Ivannia Villalba Berrios
 
-Este repositorio corresponde al desarrollo del Proyecto de Software (Sprint 1). El informe completo con la identificación del cliente, alcance, historias de usuario y arquitectura se encuentra en la carpeta `docs/`.
+## Cliente del proyecto
+Cliente: Matilde Coello
+
+Este proyecto facilita la obtención y análisis de datos de la sonda Parker Solar Probe, automatizando la descarga, filtrado y visualización de información científica que normalmente requiere diferentes procesos manuales. El sistema procesa variables clave del viento solar y la trayectoria espacial de la sonda.
+
+
+Este repositorio corresponde al desarrollo del Proyecto de Software (Sprint 1) el cual cuenta con una versión preliminar con funcionalidades básicas implementadas. El informe completo con la identificación del cliente, alcance, historias de usuario y arquitectura se encuentra en la carpeta `docs/`.
 
 
 ## Caracteristicas Principales
@@ -37,3 +47,9 @@ pip install requests beautifulsoup4 cdflib pandas numpy
  * Recomendamos usar la extensión Live Server en Visual Studio Code.
  * Haz clic derecho sobre el archivo `index.html` en el explorador de archivos.
  * Selecciona 'Open with Live Server'. La interfaz se abrirá automáticamente en tu navegador.
+
+## Ejemplos de uso
+1. Seleccionar un rango de fechas.
+2. Visualizar los datos de Orbita, Fecha, Hora, Distancias, Temperatura y Densidad.
+3. Cambiar la unidad de distancia respecto al Sol.
+4. Descargar los resultados a un archivo `.txt`.
