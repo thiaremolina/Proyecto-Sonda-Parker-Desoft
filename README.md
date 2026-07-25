@@ -33,4 +33,7 @@ Este repositorio corresponde al desarrollo del Proyecto de Software (Sprint 1). 
 ```bash
 pip install requests beautifulsoup4 cdflib pandas numpy
 ```
-3. Ejecuta el script principal y abre `index.html` en tu navegador.
+3. Ejecutar el script principal de Python para realizar la extracción y filtrado de los datos de la sonda Parker. Para visualizar la aplicación web correctamente y evitar bloqueos de seguridad en el navegador al cargar los datos locales, abre el archivo `index.html` usando un servidor local:
+ * Recomendamos usar la extensión Live Server en Visual Studio Code.
+ * Haz clic derecho sobre el archivo `index.html` en el explorador de archivos.
+ * Selecciona 'Open with Live Server'. La interfaz se abrirá automáticamente en tu navegador.
