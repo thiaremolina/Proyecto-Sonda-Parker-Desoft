@@ -9,6 +9,8 @@
 ## Cliente del proyecto
 Cliente: Matilde Coello
 
+##
+
 Este proyecto facilita la obtención y análisis de datos de la sonda Parker Solar Probe, automatizando la descarga, filtrado y visualización de información científica que normalmente requiere diferentes procesos manuales. El sistema procesa variables clave del viento solar y la trayectoria espacial de la sonda.
 
 
