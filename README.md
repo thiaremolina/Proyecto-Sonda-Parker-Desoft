@@ -23,7 +23,7 @@ Este repositorio corresponde al desarrollo del Proyecto de Software (Sprint 1) e
 * Conversión de unidades: Capacidad de modificar la unidad de medida utilizada para la distancia al Sol.
 * Exportacion: Opcion de generar y descargar un archivo `.txt` o (posiblemente `h.5`) con los datos filtrados directamente desde el navegador web.
 
-## Requisitos del Sitema
+## Requisitos del Sistema
 * Lenguaje: Python en version 3.9 o superior.
 * Almacenamiento: Espacio libre en disco de al menos 5GB (para el manejo de los archivos de la NASA)
 * Software: Navegador web moderno (Google Chrome, Microsoft Edge, etc.) para visualizar la interfaz.
