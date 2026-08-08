@@ -16,11 +16,11 @@ Este repositorio corresponde al desarrollo del Proyecto de Software (Sprint 2), 
 Los informes del Sprint 1 y Sprint 2 se encuentran en la carpeta `docs/`.
 
 ## Características Principales
-- **Visualización de datos:** Despliegue de densidad, velocidad y temperatura del viento solar, además de la distancia al Sol y número de órbita. *(Pendiente de integración con la página web)*
-- **Interfaz de usuario:** Página web (`index.html`) que organiza la información en formato tabular. *(Desarrollada inicialmente en Sprint 1, pendiente de integración con los datos procesados)*
-- **Filtro temporal:** Búsqueda y consulta de datos mediante la selección de un rango de fechas específico. *(Pendiente)*
-- **Conversión de unidades:** Capacidad de modificar la unidad de medida utilizada para la distancia al Sol. *(Pendiente)*
-- **Exportación:** Opción de generar y descargar un archivo `.txt` con los datos filtrados directamente desde el navegador web. *(Pendiente)*
+- **Visualización de datos:** Despliegue de densidad, velocidad y temperatura del viento solar, además de la distancia al Sol y número de órbita.
+- **Interfaz de usuario:** Página web (`index.html`) que organiza la información en formato tabular. 
+- **Filtro temporal:** Búsqueda y consulta de datos mediante la selección de un rango de fechas específico.
+- **Conversión de unidades:** Capacidad de modificar la unidad de medida utilizada para la distancia al Sol.
+- **Exportación:** Opción de generar y descargar un archivo `.txt` con los datos filtrados directamente desde el navegador web. 
 
 ## Implementación
 
@@ -68,13 +68,10 @@ Durante el Sprint 3 se continuará con la integración de los datos procesados e
    ```bash
    pip install requests beautifulsoup4 cdflib pandas numpy
 
-```
 
 3. Ejecuta el script de descarga de datos para obtener los archivos `.cdf` desde los servidores de la NASA:
-```bash
-python descarga_data.py
-
-```
+   ```bash
+   python descarga_data.py
 
 
 4. Ejecuta el script de filtrado para procesar los datos descargados:
