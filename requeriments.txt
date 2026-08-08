@@ -1,0 +1,6 @@
+requests
+beautifulsoup4
+cdflib
+numpy
+pandas
+pytest
