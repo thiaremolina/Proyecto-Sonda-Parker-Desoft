@@ -30,7 +30,6 @@ carpeta = os.path.dirname(os.path.abspath(__file__))
 intervalo_web = "1h"
 
 
-
 # FUNCIONES para pytest.
 
 
@@ -90,9 +89,8 @@ def preparar_datos_para_web(df, intervalo=intervalo_web):
     return df_web
 
 
-
-#este script solo corre si se ejecuta directamente,
-#NO cuando el módulo se importa desde un test.
+# este script solo corre si se ejecuta directamente,
+# NO cuando el módulo se importa desde un test.
 
 
 def main():
@@ -199,97 +197,15 @@ def main():
     print(f"datos completos {len(df)} filas")
     print(f"datos para la web {len(df_web)} filas")
 
+    # GUARDAR JSON REDUCIDO PARA LA PÁGINA WEB
+    # index.html hace fetch('psp_datos_filtrados.json') y espera una
+    # lista de registros con las llaves: fecha, orbita, distancia_Rs,
+    # distancia_sup_Rs, temperatura, densidad. Debe quedar en la misma
+    # carpeta que index.html.
+    ruta_json = os.path.join(carpeta, "psp_datos_filtrados.json")
+    df_web.to_json(ruta_json, orient="records", date_format="iso")
+    print(f"guardado {ruta_json}")
+
 
 if __name__ == "__main__":
     main()
-
-    # cruzo los datos de viento solar con los de posición
-    df["fecha_hora"] = df["fecha"].dt.floor("h")
-    df = pd.merge(df, df_pos[["fecha_hora", "distancia_AU"]],
-                  on="fecha_hora", how="left")
-
-    #convierto la distancia a radios solares y a superficie
-    df["distancia_Rs"]     = df["distancia_AU"] * 215.032
-    df["distancia_sup_Rs"] = df["distancia_Rs"] - 1.0
-    df = df.drop(columns=["fecha_hora", "distancia_AU"], errors="ignore")
-    print("distancias agregadas correctamente")
-except Exception as e:
-    import traceback
-    traceback.print_exc()
-    df["distancia_Rs"] = np.nan
-    df["distancia_sup_Rs"] = np.nan
-
-# detectar perihelios y numeros de orbitas
-
-# calculo la distancia media diaria
-df_diario = df.groupby("fecha_dia" if "fecha_dia" in df.columns
-                        else df["fecha"].dt.normalize())["distancia_Rs"].mean().reset_index()
-df_diario.columns = ["fecha_dia", "dist_media"]
-
-ventana = 15  # días de margen para buscar mínimos locales
-perih_fechas = []
-for i in range(ventana, len(df_diario) - ventana):
-    ventana_datos = df_diario["dist_media"].iloc[i - ventana: i + ventana + 1]
-    if df_diario["dist_media"].iloc[i] == ventana_datos.min():
-        perih_fechas.append(df_diario["fecha_dia"].iloc[i])
-
-# asigno número de órbita según los perihelios detectados
-df["orbita"] = 1
-for idx, fecha_perih in enumerate(perih_fechas):
-    df.loc[df["fecha"].dt.normalize() >= fecha_perih, "orbita"] = idx + 2
-
-print(f"perihelios detectados {len(perih_fechas)}")
-print(f"órbitas asignadas {df['orbita'].max()}")
-
-# GUARDAR CSV COMPLETO
-
-df.to_csv("psp_datos_filtrados.csv", index=False)
-print("guardado psp_datos_filtrados.csv")
-print(df.head(10))
-
-# PREPARAR DATOS PARA LA WEB CON INTERPOLACION 
-
-def preparar_datos_para_web(df, intervalo=intervalo_web):
-    """
-    esta función reduce el dataset completo para que sea más liviano en la web.
-    pasos:
-    1. usa la columna fecha como índice temporal
-    2. promedia los valores dentro de cada intervalo fijo 
-    3. interpola los huecos con una línea recta para que no queden vacíos
-    4. trata la órbita aparte: toma el valor más común en cada intervalo
-    devuelve un dataframe listo para exportar a json
-    """
-    df = df.copy()
-    df = df.set_index("fecha")
-
-    columnas_numericas = ["densidad", "velocidad_r", "temperatura",
-                           "distancia_Rs", "distancia_sup_Rs"]
-
-    # promedia los valores dentro de cada intervalo
-
-    df_web = df[columnas_numericas].resample(intervalo).mean()
-
-    # rellena los huecos con interpolación lineal
-
-    df_web = df_web.interpolate(method="linear", limit_direction="both")
-
-    #La órbita se trata aparte: se toma el valor más común (moda) en cada intervalo
-    orbita_resampleada = (
-        df["orbita"]
-        .resample(intervalo)
-        .agg(lambda x: x.mode().iloc[0] if not x.mode().empty else np.nan)
-    )
-    orbita_resampleada = orbita_resampleada.interpolate(method="nearest", limit_direction="both")
-    df_web["orbita"] = orbita_resampleada.round().astype("Int64")
-
-    df_web = df_web.reset_index()
-    return df_web
-
-#aplico la función y guardo el json reducido
-
-df_web = preparar_datos_para_web(df, intervalo=intervalo_web)
-
-print(f"datos completos {len(df)} filas")
-print(f"datos para la web {len(df_web)} filas")
-
-#PARA EJECUTAR: EN LA TERMINAL COLOCAR: python Filtrar_data.py
