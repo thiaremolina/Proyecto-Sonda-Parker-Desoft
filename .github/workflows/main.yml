@@ -31,4 +31,4 @@ jobs:
           pip install pytest
 
       - name: Correr tests
-        run: pytest pruebas
+        run: PYTHONPATH=. pytest pruebas
