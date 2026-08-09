@@ -12,8 +12,7 @@ import pytest
 
 import descargar_data as dd
 
-
-# ---------- listar_archivos_del_año ----------
+#listar archivo de años
 
 def test_listar_archivos_del_año_ok():
     html_falso = """
@@ -41,7 +40,7 @@ def test_listar_archivos_del_año_error_de_red():
     assert resultado == []
 
 
-# ---------- descargar ----------
+#la descarga
 
 def test_descargar_salta_si_ya_existe(tmp_path):
     nombre = "ya_descargado.cdf"
@@ -85,7 +84,7 @@ def test_descargar_borra_archivo_incompleto_si_falla(tmp_path):
     assert not os.path.exists(resultado)
 
 
-# ---------- espacio_libre_gb ----------
+#el espacio libre 
 
 def test_espacio_libre_gb(tmp_path):
     uso_falso = MagicMock()
@@ -99,7 +98,7 @@ def test_espacio_libre_gb(tmp_path):
     assert libres_gb == pytest.approx(60.0)
 
 
-# ---------- descargar_posicion ----------
+#la posición 
 
 def test_descargar_posicion_ya_existe(tmp_path):
     archivo_pos = "posicion.cdf"
