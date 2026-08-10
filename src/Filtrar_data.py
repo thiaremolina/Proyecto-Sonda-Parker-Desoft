@@ -205,7 +205,8 @@ def main():
     df = asignar_orbitas(df, perih_fechas)
     print(f"perihelios detectados {len(perih_fechas)}")
     print(f"órbitas asignadas {df['orbita'].max()}")
-
+#Crear una carpeta para la ruta y obligar a python a guardar el archivo json en la misma carpeta que está el script.py e index.html
+    ruta_csv = os.path.join (CARPETA, 'psp_datos_filtrados.csv')
     df.to_csv("psp_datos_filtrados.csv", index=False)
     print("guardado psp_datos_filtrados.csv")
     print(df.head(10))
