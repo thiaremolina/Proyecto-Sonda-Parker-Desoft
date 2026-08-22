@@ -9,6 +9,7 @@
 # ejecutas directamente: python descargar_data.py
 
 import os
+import json
 import shutil
 import requests
 from bs4 import BeautifulSoup
@@ -24,6 +25,42 @@ ARCHIVO_POS = "psp_helio1hr_position_20180813_v01.cdf"
 BASE_URL = "https://spdf.gsfc.nasa.gov/pub/data/psp/sweap/spi/l3/spi_sf00_l3_mom"
 AÑOS = list(range(2018, 2026))  # años que tienen datos
 
+# archivo donde guardamos qué archivos vimos la última vez por cada año
+# esto evita tener que preguntarle a la nasa de nuevo si ya tenemos todo
+MANIFIESTO = os.path.join(DESTINO, ".manifiesto_años.json")
+
+
+def cargar_manifiesto(ruta=MANIFIESTO):
+    """lee el manifiesto local si existe, si no devuelve un diccionario vacío."""
+    if os.path.exists(ruta):
+        try:
+            with open(ruta, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def guardar_manifiesto(manifiesto, ruta=MANIFIESTO):
+    """guarda el manifiesto local en disco."""
+    try:
+        with open(ruta, "w", encoding="utf-8") as f:
+            json.dump(manifiesto, f)
+    except Exception as e:
+        print(f"no se pudo guardar el manifiesto {e}")
+
+
+def año_ya_completo(año, manifiesto, destino=DESTINO):
+    """
+    revisa si, según el manifiesto guardado la última vez, todos los
+    archivos de ese año ya están descargados localmente.
+    si es así, no hace falta volver a consultar la nasa por ese año.
+    """
+    archivos_conocidos = manifiesto.get(str(año))
+    if not archivos_conocidos:
+        return False
+    return all(os.path.exists(os.path.join(destino, a)) for a in archivos_conocidos)
+
 
 def descargar_posicion(destino=DESTINO, base_url_pos=BASE_URL_POS, archivo_pos=ARCHIVO_POS):
     """
@@ -33,7 +70,7 @@ def descargar_posicion(destino=DESTINO, base_url_pos=BASE_URL_POS, archivo_pos=A
     destino_pos = os.path.join(destino, archivo_pos)
     if os.path.exists(destino_pos):
         print(f"ya existe {archivo_pos}")
-        return destino_pos
+        return destino_pos, False  # False = no se descargó, ya existía
 
     print(f"descargando {archivo_pos}")
     try:
@@ -50,7 +87,7 @@ def descargar_posicion(destino=DESTINO, base_url_pos=BASE_URL_POS, archivo_pos=A
         print(f"listo {archivo_pos} ({descargado/1e6:.1f} mb)")
     except Exception as e:
         print(f"error {e}")
-    return destino_pos
+    return destino_pos, True  # True = se intentó/realizó la descarga
 
 
 def listar_archivos_del_año(año, base_url=BASE_URL):
@@ -82,7 +119,7 @@ def descargar(año, nombre, destino=DESTINO, base_url=BASE_URL):
     destino_archivo = os.path.join(destino, nombre)
     if os.path.exists(destino_archivo):
         print(f"ya existe {nombre}")
-        return destino_archivo
+        return destino_archivo, False  # False = no se descargó, ya existía
 
     print(f"descargando {nombre}")
     try:
@@ -101,7 +138,7 @@ def descargar(año, nombre, destino=DESTINO, base_url=BASE_URL):
         print(f"error {e}")
         if os.path.exists(destino_archivo):
             os.remove(destino_archivo)
-    return destino_archivo
+    return destino_archivo, True  # True = se intentó/realizó la descarga
 
 
 def espacio_libre_gb(destino=DESTINO):
@@ -120,27 +157,64 @@ def main():
     print(f"espacio libre {espacio_libre_gb():.1f} gb")
     print(f"destino {DESTINO}")
 
-    descargar_posicion()
+    # contadores para el resumen final
+    nuevos = 0
+    ya_existian = 0
+
+    _, se_descargo = descargar_posicion()
+    if se_descargo:
+        nuevos += 1
+    else:
+        ya_existian += 1
+
+    manifiesto = cargar_manifiesto()
 
     for año in AÑOS:
         print("=" * 50)
         print(f"año {año}")
         print("=" * 50)
+
+        # si el año ya estaba completo la última vez, ni siquiera
+        # consultamos internet, nos ahorramos esa petición
+        if año_ya_completo(año, manifiesto):
+            archivos = manifiesto[str(año)]
+            print(f"año {año} ya completo según el manifiesto, no se consulta la nasa")
+            ya_existian += len(archivos)
+            continue
+
         archivos = listar_archivos_del_año(año)
         if not archivos:
             print("sin archivos disponibles")
             continue
         print(f"{len(archivos)} archivos encontrados")
+
+        # guardamos la lista para la próxima ejecución
+        manifiesto[str(año)] = archivos
+        guardar_manifiesto(manifiesto)
+
         for archivo in archivos:
             if espacio_libre_gb() < 2:
                 print("menos de 2 gb libres, deteniendo descarga")
                 print("libera espacio y vuelve a ejecutar, los archivos ya descargados se saltarán")
+                print("=" * 50)
+                print(f"resumen parcial: {nuevos} nuevos, {ya_existian} ya existían")
+                print("=" * 50)
                 return
-            descargar(año, archivo)
+            _, se_descargo = descargar(año, archivo)
+            if se_descargo:
+                nuevos += 1
+            else:
+                ya_existian += 1
 
+    print("=" * 50)
     print("descarga completa")
+    print(f"archivos nuevos descargados: {nuevos}")
+    print(f"archivos que ya existían (saltados): {ya_existian}")
+    print("=" * 50)
 
 
 # PARA EJECUTAR: EN LA TERMINAL COLOCAR: python descargar_data.py
 if __name__ == "__main__":
     main()
+#el archivo data.py se encuentra en una carpeta por lo tanto para printear
+#ahora se coloca    python src\descargar_data.py en la terminal
