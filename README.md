@@ -61,6 +61,11 @@ Durante el Sprint 3 se integraron los datos procesados en la interfaz web. Se im
 - **cdflib:** Abrir y extraer la información de los archivos `.cdf` (el formato de distribución de datos de la NASA).
 - **Pandas:** Organizar, limpiar y procesar los datos estructurándolos en tablas.
 - **Numpy:** Realizar los cálculos numéricos (utilizado por Pandas y por el script de filtrado).
+- **os:** Construir rutas de archivos y revisar si un .cdf ya existe.
+- **json:** Guardar Y lee los archivos ya descargados.
+- **shutil:** Revisar el espacio libre en disco antes de seguir descargando.
+   
+
 
 ## Instrucciones de Instalación
 1. Clona este repositorio en tu computadora.
