@@ -41,7 +41,7 @@ Para determinar el número de órbita, la función identifica los perihelios de 
 Finalmente, los datos son limpiados y ordenados para dejarlos preparados para su posterior utilización e integración en la página web.
 
 ### Sprint 3
-Durante el Sprint 3 se continuará con la integración de los datos procesados en la interfaz web. Se espera implementar las funcionalidades que actualmente se encuentran pendientes, entre ellas:
+Durante el Sprint 3 se integraron los datos procesados en la interfaz web. Se implementó las funcionalidades que se encontraban pendientes de los sprints 1 y 2, entre ellas:
 - Integración de los datos procesados con `index.html`.
 - Visualización de los datos de fecha, hora, densidad, velocidad y temperatura.
 - Visualización de la distancia centro, distancia de la superficie y número de órbita.
@@ -92,9 +92,9 @@ python Filtrar_data.py
 
 1. Ejecutar el script de descarga para obtener los archivos de la sonda Parker.
 2. Ejecutar el script de filtrado para procesar y organizar los datos relevantes.
-3. Visualizar los datos procesados en la página web. *(Pendiente, Sprint 3)*
-4. Seleccionar un rango de fechas. *(Sprint 3)*
-5. Visualizar los datos de la tabla que contiene: Órbita, Fecha, Hora, Distancia, Temperatura y Densidad. *(Sprint 3)*
-6. Cambiar la unidad de distancia respecto al Sol. *(Sprint 3)*
-7. Descargar los resultados a un archivo `.txt`. *(Sprint 3)*
+3. Visualizar los datos procesados en la página web. 
+4. Seleccionar un rango de fechas. 
+5. Visualizar los datos de la tabla que contiene: Órbita, Fecha, Hora, Distancia, Temperatura y Densidad.
+6. Cambiar la unidad de distancia respecto al Sol. 
+7. Descargar los resultados a un archivo `.txt`.
 
