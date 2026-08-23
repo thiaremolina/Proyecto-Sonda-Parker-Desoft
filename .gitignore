@@ -1,3 +1,6 @@
 psp_datos_filtrados.csv
 .vs/
 *.cdf
+__pycache__/
+*.pyc
+.pytest_cache/
